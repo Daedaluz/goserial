@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	tcgets = uintptr(0x5401)
-	tcsets = uintptr(0x5402)
+	tcgets  = uintptr(0x5401)
+	tcsets  = uintptr(0x5402)
 	tcsetsw = uintptr(0x5403)
 	tcsetsf = uintptr(0x5404)
 
@@ -26,7 +26,6 @@ var (
 	tcflsh = uintptr(0x540B)
 
 	tcxonc = uintptr(0x540A)
-
 
 	tiocmget = uintptr(0x5415) // get status
 	tiocmbis = uintptr(0x5416) // set indicated bits
