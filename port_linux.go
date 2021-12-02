@@ -492,7 +492,7 @@ func (p *Port) MakeRaw() error {
 	if err != nil {
 		return err
 	}
-	MakeRaw(attrs)
+	attrs.MakeRaw()
 	return p.SetAttr(TCSANOW, attrs)
 }
 
@@ -522,7 +522,7 @@ func (p *Port) DisableModemLines(line ModemLine) error {
 	return ioctl.Ioctl(int(p.f.Fd()), tiocmbic, uintptr(unsafe.Pointer(&line)))
 }
 
-func MakeRaw(attrs *Termios) {
+func (attrs *Termios) MakeRaw() {
 	attrs.Iflag &= ^(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON)
 	attrs.Oflag &= ^(OPOST)
 	attrs.Lflag &= ^(ECHO | ECHONL | ICANON | ISIG | IEXTEN)
@@ -530,10 +530,34 @@ func MakeRaw(attrs *Termios) {
 	attrs.Cflag |= CS8
 }
 
-func MakeRaw2(attrs *Termios2) {
+func (attrs *Termios2) MakeRaw() {
 	attrs.Iflag &= ^(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON)
 	attrs.Oflag &= ^(OPOST)
 	attrs.Lflag &= ^(ECHO | ECHONL | ICANON | ISIG | IEXTEN)
 	attrs.Cflag &= ^(CSIZE | PARENB)
 	attrs.Cflag |= CS8
+}
+
+func (attrs *Termios) SetSpeed(speed CFlag) {
+	attrs.Cflag &= ^(CBAUD)
+	attrs.Cflag |= speed
+}
+
+func (attrs *Termios2) SetSpeed(speed CFlag) {
+	attrs.Cflag &= ^(CBAUD)
+	attrs.Cflag |= speed
+}
+
+func (attrs *Termios2) SetCustomIOSpeed(ispeed, ospeed uint32) {
+	attrs.Cflag &= ^(CBAUD)
+	attrs.Cflag |= BOTHER
+	attrs.ISpeed = ispeed
+	attrs.OSpeed = ospeed
+}
+
+func (attrs *Termios2) SetCustomSpeed(speed uint32) {
+	attrs.Cflag &= ^(CBAUD)
+	attrs.Cflag |= BOTHER
+	attrs.ISpeed = speed
+	attrs.OSpeed = speed
 }
