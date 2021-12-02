@@ -8,6 +8,15 @@ import (
 )
 
 type Termios struct {
+	Iflag IFlag      /* input mode flags */
+	Oflag OFlag      /* output mode flags */
+	Cflag CFlag      /* control mode flags */
+	Lflag LFlag      /* local mode flags */
+	Line  Discipline /* line discipline */
+	Cc    [19]byte   /* control characters */
+}
+
+type Termios2 struct {
 	Iflag  IFlag      /* input mode flags */
 	Oflag  OFlag      /* output mode flags */
 	Cflag  CFlag      /* control mode flags */
@@ -393,7 +402,7 @@ func (p *Port) Close() error {
 
 func (p *Port) GetAttr() (*Termios, error) {
 	attrs := &Termios{}
-	err := ioctl.Ioctl(int(p.f.Fd()), tcgets2, uintptr(unsafe.Pointer(attrs)))
+	err := ioctl.Ioctl(int(p.f.Fd()), tcgets, uintptr(unsafe.Pointer(attrs)))
 	if err != nil {
 		return nil, err
 	}
@@ -401,6 +410,19 @@ func (p *Port) GetAttr() (*Termios, error) {
 }
 
 func (p *Port) SetAttr(when Action, attrs *Termios) error {
+	return ioctl.Ioctl(int(p.f.Fd()), tcsets+uintptr(when), uintptr(unsafe.Pointer(attrs)))
+}
+
+func (p *Port) GetAttr2() (*Termios2, error) {
+	attrs := &Termios2{}
+	err := ioctl.Ioctl(int(p.f.Fd()), tcgets2, uintptr(unsafe.Pointer(attrs)))
+	if err != nil {
+		return nil, err
+	}
+	return attrs, nil
+}
+
+func (p *Port) SetAttr2(when Action, attrs *Termios2) error {
 	return ioctl.Ioctl(int(p.f.Fd()), tcsets2+uintptr(when), uintptr(unsafe.Pointer(attrs)))
 }
 
@@ -442,7 +464,6 @@ func (p *Port) SetBreak() error {
 func (p *Port) ClearBreak() error {
 	return ioctl.Ioctl(int(p.f.Fd()), tioccbrk, 1)
 }
-
 
 // Drain
 // waits until all output written to the Port has been transmitted.
@@ -502,6 +523,14 @@ func (p *Port) DisableModemLines(line ModemLine) error {
 }
 
 func MakeRaw(attrs *Termios) {
+	attrs.Iflag &= ^(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON)
+	attrs.Oflag &= ^(OPOST)
+	attrs.Lflag &= ^(ECHO | ECHONL | ICANON | ISIG | IEXTEN)
+	attrs.Cflag &= ^(CSIZE | PARENB)
+	attrs.Cflag |= CS8
+}
+
+func MakeRaw2(attrs *Termios2) {
 	attrs.Iflag &= ^(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON)
 	attrs.Oflag &= ^(OPOST)
 	attrs.Lflag &= ^(ECHO | ECHONL | ICANON | ISIG | IEXTEN)
