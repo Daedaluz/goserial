@@ -11,11 +11,13 @@ var (
 	tcsetsw = uintptr(0x5403)
 	tcsetsf = uintptr(0x5404)
 
+	tcgets2  = ioctl.IOR('T', 0x2A, unsafe.Sizeof(Termios2{}))
 	tcsets2  = ioctl.IOW('T', 0x2B, unsafe.Sizeof(Termios2{}))
 	tcsetsw2 = ioctl.IOW('T', 0x2C, unsafe.Sizeof(Termios2{}))
 	tcsetsf2 = ioctl.IOW('T', 0x2D, unsafe.Sizeof(Termios2{}))
 
-	tcgets2 = ioctl.IOR('T', 0x2A, unsafe.Sizeof(Termios2{}))
+	tiocgserial = uintptr(0x541E)
+	tiocsserial = uintptr(0x541F)
 
 	tcsbrk  = uintptr(0x5409)
 	tcsbrkp = uintptr(0x5425)

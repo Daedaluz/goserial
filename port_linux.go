@@ -27,6 +27,75 @@ type Termios2 struct {
 	OSpeed uint32     /* output speed */
 }
 
+type SerialFlags int32
+
+const (
+	asyncb_hup_notify = iota
+	asyncb_fourport
+	asyncb_sak
+	asyncb_split_termios
+	asyncb_spd_hi
+	asyncb_spd_vhi
+	asyncb_skip_test
+	asyncb_auto_irq
+	asyncb_session_lockout
+	asyncb_pgrp_lockout
+	asyncb_callout_nohup
+	asyncb_hardpps_cd
+	asyncb_spd_shi
+	asyncb_low_latency
+	asyncb_buggy_uart
+	asyncb_autoprobe
+	asyncb_magic_multiplier
+
+	asyncb_suspended = 30
+)
+const (
+	AsyncHupNotify       = SerialFlags(1 << asyncb_hup_notify)
+	AsyncSuspended       = SerialFlags(1 << asyncb_suspended)
+	AsyncFourPort        = SerialFlags(1 << asyncb_fourport)
+	AsyncSak             = SerialFlags(1 << asyncb_sak)
+	AsyncSplitTermios    = SerialFlags(1 << asyncb_split_termios)
+	AsyncSPDHI           = SerialFlags(1 << asyncb_spd_hi)
+	AsyncSPDVHI          = SerialFlags(1 << asyncb_spd_vhi)
+	AsyncSkipTest        = SerialFlags(1 << asyncb_skip_test)
+	AsyncAutoIRQ         = SerialFlags(1 << asyncb_auto_irq)
+	AsyncSessionLockout  = SerialFlags(1 << asyncb_session_lockout)
+	AsyncPGRPLockout     = SerialFlags(1 << asyncb_pgrp_lockout)
+	AsyncCalloutNOHUP    = SerialFlags(1 << asyncb_callout_nohup)
+	AsyncHardPPSCD       = SerialFlags(1 << asyncb_hardpps_cd)
+	AsyncSPDSHI          = SerialFlags(1 << asyncb_spd_shi)
+	AsyncLowLatency      = SerialFlags(1 << asyncb_low_latency)
+	AsyncBuggyUART       = SerialFlags(1 << asyncb_buggy_uart)
+	AsyncAutoProbe       = SerialFlags(1 << asyncb_autoprobe)
+	AsyncMagicMultiplier = SerialFlags(1 << asyncb_magic_multiplier)
+
+	AsyncSPDCust = AsyncSPDHI | AsyncSPDVHI
+	AsyncSPDWarp = AsyncSPDHI | AsyncSPDSHI
+	AsyncSPDMask = AsyncSPDHI | AsyncSPDVHI | AsyncSPDSHI
+)
+
+type Serial struct {
+	Type          int32
+	Line          int32
+	Port          uint32
+	Irq           int32
+	Flags         SerialFlags
+	XmitFifoSize  int32
+	CustomDivisor int32
+	BaudBase      int32
+	CloseDelay    uint16
+	IOType        byte
+	ReservedChar  byte
+	Hub6          int32
+	ClosingWait   uint16 /* time to wait before closing */
+	ClosingWait2  uint16 /* no longer used... */
+	IOMemBase     uintptr
+	IOMemRegShift uint16
+	PortHigh      uint32
+	IOMapBase     uint64 /* cookie passed into ioremap */
+}
+
 // Control characters
 const (
 	// VINTR
@@ -424,6 +493,19 @@ func (p *Port) GetAttr2() (*Termios2, error) {
 
 func (p *Port) SetAttr2(when Action, attrs *Termios2) error {
 	return ioctl.Ioctl(int(p.f.Fd()), tcsets2+uintptr(when), uintptr(unsafe.Pointer(attrs)))
+}
+
+func (p *Port) GetSerial() (*Serial, error) {
+	serial := &Serial{}
+	err := ioctl.Ioctl(int(p.f.Fd()), tiocgserial, uintptr(unsafe.Pointer(serial)))
+	if err != nil {
+		return nil, err
+	}
+	return serial, nil
+}
+
+func (p *Port) SetSerial(s *Serial) error {
+	return ioctl.Ioctl(int(p.f.Fd()), tiocsserial, uintptr(unsafe.Pointer(s)))
 }
 
 // SendBreak
