@@ -149,6 +149,33 @@ type Serial struct {
 	IOMapBase     uint64 /* cookie passed into ioremap */
 }
 
+type RS485Flag uint32
+
+const (
+	// RS485Enabled
+	// If enabled
+	RS485Enabled = RS485Flag(1 << 0)
+	// RS485RTSOnSend
+	// Logical level for RTS pin when sending
+	RS485RTSOnSend = RS485Flag(1 << 1)
+	// RS485RTSAfterSend
+	// Logical level for RTS pin after sent
+	RS485RTSAfterSend = RS485Flag(1 << 2)
+	// RS485RXDuringTx
+	// Receive while transmitting
+	RS485RXDuringTx = RS485Flag(1 << 4)
+	// RS485TerminateBus
+	// Enable bus termination (if supported)
+	RS485TerminateBus = RS485Flag(1 << 5)
+)
+
+type RS485 struct {
+	Flags              RS485Flag /* RS485 feature flags */
+	DelayRTSBeforeSend uint32    /* Delay before send (milliseconds) */
+	DelayRTSAfterSend  uint32    /* Delay after send (milliseconds) */
+	padding            [5]uint32
+}
+
 // Control characters
 const (
 	// VINTR
@@ -618,6 +645,23 @@ func (p *Port) Flush(queue Queue) error {
 // depending on the flow value
 func (p *Port) Flow(flow Flow) error {
 	return ioctl.Ioctl(int(p.f.Fd()), tcxonc, uintptr(flow))
+}
+
+// GetRS485
+// Returns current rs485 configuration
+func (p *Port) GetRS485() (*RS485, error) {
+	rs485cfg := &RS485{}
+	err := ioctl.Ioctl(int(p.f.Fd()), tiocgrs485, uintptr(unsafe.Pointer(rs485cfg)))
+	if err != nil {
+		return nil, err
+	}
+	return rs485cfg, nil
+}
+
+// SetRS485
+// Set rs485 parameters
+func (p *Port) SetRS485(cfg *RS485) error {
+	return ioctl.Ioctl(int(p.f.Fd()), tiocsrs485, uintptr(unsafe.Pointer(cfg)))
 }
 
 // MakeRaw

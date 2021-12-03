@@ -33,4 +33,7 @@ var (
 	tiocmbis = uintptr(0x5416) // set indicated bits
 	tiocmbic = uintptr(0x6417) // clear indicated bits
 	tiocmset = uintptr(0x5418) // set status
+
+	tiocgrs485 = uintptr(0x542E)
+	tiocsrs485 = uintptr(0x542F)
 )
