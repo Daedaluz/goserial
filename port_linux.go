@@ -51,23 +51,76 @@ const (
 	asyncb_suspended = 30
 )
 const (
-	AsyncHupNotify       = SerialFlags(1 << asyncb_hup_notify)
-	AsyncSuspended       = SerialFlags(1 << asyncb_suspended)
-	AsyncFourPort        = SerialFlags(1 << asyncb_fourport)
-	AsyncSak             = SerialFlags(1 << asyncb_sak)
-	AsyncSplitTermios    = SerialFlags(1 << asyncb_split_termios)
-	AsyncSPDHI           = SerialFlags(1 << asyncb_spd_hi)
-	AsyncSPDVHI          = SerialFlags(1 << asyncb_spd_vhi)
-	AsyncSkipTest        = SerialFlags(1 << asyncb_skip_test)
-	AsyncAutoIRQ         = SerialFlags(1 << asyncb_auto_irq)
-	AsyncSessionLockout  = SerialFlags(1 << asyncb_session_lockout)
-	AsyncPGRPLockout     = SerialFlags(1 << asyncb_pgrp_lockout)
-	AsyncCalloutNOHUP    = SerialFlags(1 << asyncb_callout_nohup)
-	AsyncHardPPSCD       = SerialFlags(1 << asyncb_hardpps_cd)
-	AsyncSPDSHI          = SerialFlags(1 << asyncb_spd_shi)
-	AsyncLowLatency      = SerialFlags(1 << asyncb_low_latency)
-	AsyncBuggyUART       = SerialFlags(1 << asyncb_buggy_uart)
-	AsyncAutoProbe       = SerialFlags(1 << asyncb_autoprobe)
+	// AsyncHupNotify
+	// Notify getty on hangups and closes on the callout port
+	AsyncHupNotify = SerialFlags(1 << asyncb_hup_notify)
+
+	// AsyncSuspended
+	// Serial port is suspended
+	AsyncSuspended = SerialFlags(1 << asyncb_suspended)
+
+	// AsyncFourPort
+	// Set OUT1, OUT2 per AST Fourport settings
+	AsyncFourPort = SerialFlags(1 << asyncb_fourport)
+
+	// AsyncSak
+	// Secure Attention Key (Orange book)
+	AsyncSak = SerialFlags(1 << asyncb_sak)
+
+	// AsyncSplitTermios
+	// [x] Separate termios for dialin/callout
+	AsyncSplitTermios = SerialFlags(1 << asyncb_split_termios)
+
+	// AsyncSPDHI
+	// Use 57600 instead of 38400 bps
+	AsyncSPDHI = SerialFlags(1 << asyncb_spd_hi)
+
+	// AsyncSPDVHI
+	// Use 115200 instead of 38400 bps
+	AsyncSPDVHI = SerialFlags(1 << asyncb_spd_vhi)
+
+	// AsyncSkipTest
+	// Skip UART test during autoconfiguration
+	AsyncSkipTest = SerialFlags(1 << asyncb_skip_test)
+
+	// AsyncAutoIRQ
+	// Do automatic IRQ during autoconfiguration
+	AsyncAutoIRQ = SerialFlags(1 << asyncb_auto_irq)
+
+	// AsyncSessionLockout
+	// [x] Lock out cua opens based on session
+	AsyncSessionLockout = SerialFlags(1 << asyncb_session_lockout)
+
+	// AsyncPGRPLockout
+	// [x] Lock out cua opens based on pgrp
+	AsyncPGRPLockout = SerialFlags(1 << asyncb_pgrp_lockout)
+
+	// AsyncCalloutNOHUP
+	// [x] Don't do hangups for cua device
+	AsyncCalloutNOHUP = SerialFlags(1 << asyncb_callout_nohup)
+
+	// AsyncHardPPSCD
+	// Call hardpps when CD goes high
+	AsyncHardPPSCD = SerialFlags(1 << asyncb_hardpps_cd)
+
+	// AsyncSPDSHI
+	// Use 230400 instead of 38400 bps
+	AsyncSPDSHI = SerialFlags(1 << asyncb_spd_shi)
+
+	// AsyncLowLatency
+	// Request low latency behaviour
+	AsyncLowLatency = SerialFlags(1 << asyncb_low_latency)
+
+	// AsyncBuggyUART
+	// This is a buggy UART, skip some safety checks.  Note: can be dangerous!
+	AsyncBuggyUART = SerialFlags(1 << asyncb_buggy_uart)
+
+	// AsyncAutoProbe
+	// [x] Port was autoprobed by PCI/PNP code
+	AsyncAutoProbe = SerialFlags(1 << asyncb_autoprobe)
+
+	// AsyncMagicMultiplier
+	// Use special CLK or divisor
 	AsyncMagicMultiplier = SerialFlags(1 << asyncb_magic_multiplier)
 
 	AsyncSPDCust = AsyncSPDHI | AsyncSPDVHI
