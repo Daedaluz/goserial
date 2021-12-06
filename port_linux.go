@@ -551,7 +551,7 @@ func (p *Port) Close() error {
 
 func (p *Port) GetAttr() (*Termios, error) {
 	attrs := &Termios{}
-	err := ioctl.Ioctl(int(p.f.Fd()), tcgets, uintptr(unsafe.Pointer(attrs)))
+	err := ioctl.Ioctl(p.f.Fd(), tcgets, uintptr(unsafe.Pointer(attrs)))
 	if err != nil {
 		return nil, err
 	}
@@ -559,12 +559,12 @@ func (p *Port) GetAttr() (*Termios, error) {
 }
 
 func (p *Port) SetAttr(when Action, attrs *Termios) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tcsets+uintptr(when), uintptr(unsafe.Pointer(attrs)))
+	return ioctl.Ioctl(p.f.Fd(), tcsets+uintptr(when), uintptr(unsafe.Pointer(attrs)))
 }
 
 func (p *Port) GetAttr2() (*Termios2, error) {
 	attrs := &Termios2{}
-	err := ioctl.Ioctl(int(p.f.Fd()), tcgets2, uintptr(unsafe.Pointer(attrs)))
+	err := ioctl.Ioctl(p.f.Fd(), tcgets2, uintptr(unsafe.Pointer(attrs)))
 	if err != nil {
 		return nil, err
 	}
@@ -572,12 +572,12 @@ func (p *Port) GetAttr2() (*Termios2, error) {
 }
 
 func (p *Port) SetAttr2(when Action, attrs *Termios2) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tcsets2+uintptr(when), uintptr(unsafe.Pointer(attrs)))
+	return ioctl.Ioctl(p.f.Fd(), tcsets2+uintptr(when), uintptr(unsafe.Pointer(attrs)))
 }
 
 func (p *Port) GetSerial() (*Serial, error) {
 	serial := &Serial{}
-	err := ioctl.Ioctl(int(p.f.Fd()), tiocgserial, uintptr(unsafe.Pointer(serial)))
+	err := ioctl.Ioctl(p.f.Fd(), tiocgserial, uintptr(unsafe.Pointer(serial)))
 	if err != nil {
 		return nil, err
 	}
@@ -585,7 +585,7 @@ func (p *Port) GetSerial() (*Serial, error) {
 }
 
 func (p *Port) SetSerial(s *Serial) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tiocsserial, uintptr(unsafe.Pointer(s)))
+	return ioctl.Ioctl(p.f.Fd(), tiocsserial, uintptr(unsafe.Pointer(s)))
 }
 
 // SendBreak
@@ -604,7 +604,7 @@ func (p *Port) SetSerial(s *Serial) error {
 // AIX treat arg (when nonzero) as a time interval measured
 // in milliseconds.  HP-UX ignores arg.)
 func (p *Port) SendBreak(arg int) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tcsbrk, uintptr(arg))
+	return ioctl.Ioctl(p.f.Fd(), tcsbrk, uintptr(arg))
 }
 
 // SendBreakPosix
@@ -612,46 +612,46 @@ func (p *Port) SendBreak(arg int) error {
 // arg as a time interval measured in deciseconds, and does
 // nothing when the driver does not support breaks.
 func (p *Port) SendBreakPosix(arg int) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tcsbrkp, uintptr(arg))
+	return ioctl.Ioctl(p.f.Fd(), tcsbrkp, uintptr(arg))
 }
 
 // SetBreak
 // Turn break on, that is, start sending zero bits.
 func (p *Port) SetBreak() error {
-	return ioctl.Ioctl(int(p.f.Fd()), tiocsbrk, 1)
+	return ioctl.Ioctl(p.f.Fd(), tiocsbrk, 1)
 }
 
 // ClearBreak
 // Turn break off, that is, stop sending zero bits.
 func (p *Port) ClearBreak() error {
-	return ioctl.Ioctl(int(p.f.Fd()), tioccbrk, 1)
+	return ioctl.Ioctl(p.f.Fd(), tioccbrk, 1)
 }
 
 // Drain
 // waits until all output written to the Port has been transmitted.
 func (p *Port) Drain() error {
-	return ioctl.Ioctl(int(p.f.Fd()), tcsbrk, 1)
+	return ioctl.Ioctl(p.f.Fd(), tcsbrk, 1)
 }
 
 // Flush
 // discards data written to the Port but not transmitted,
 // or data received but not read, depending on the queue
 func (p *Port) Flush(queue Queue) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tcflsh, uintptr(queue))
+	return ioctl.Ioctl(p.f.Fd(), tcflsh, uintptr(queue))
 }
 
 // Flow
 // suspends transmission or reception of data on the Port,
 // depending on the flow value
 func (p *Port) Flow(flow Flow) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tcxonc, uintptr(flow))
+	return ioctl.Ioctl(p.f.Fd(), tcxonc, uintptr(flow))
 }
 
 // GetRS485
 // Returns current rs485 configuration
 func (p *Port) GetRS485() (*RS485, error) {
 	rs485cfg := &RS485{}
-	err := ioctl.Ioctl(int(p.f.Fd()), tiocgrs485, uintptr(unsafe.Pointer(rs485cfg)))
+	err := ioctl.Ioctl(p.f.Fd(), tiocgrs485, uintptr(unsafe.Pointer(rs485cfg)))
 	if err != nil {
 		return nil, err
 	}
@@ -661,7 +661,7 @@ func (p *Port) GetRS485() (*RS485, error) {
 // SetRS485
 // Set rs485 parameters
 func (p *Port) SetRS485(cfg *RS485) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tiocsrs485, uintptr(unsafe.Pointer(cfg)))
+	return ioctl.Ioctl(p.f.Fd(), tiocsrs485, uintptr(unsafe.Pointer(cfg)))
 }
 
 // MakeRaw
@@ -678,27 +678,27 @@ func (p *Port) MakeRaw() error {
 // SetModemLines
 // Set the status of modem bits.
 func (p *Port) SetModemLines(line ModemLine) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tiocmset, uintptr(unsafe.Pointer(&line)))
+	return ioctl.Ioctl(p.f.Fd(), tiocmset, uintptr(unsafe.Pointer(&line)))
 }
 
 // GetModemLines
 // Get the status of modem bits.
 func (p *Port) GetModemLines() (ModemLine, error) {
 	var line ModemLine
-	err := ioctl.Ioctl(int(p.f.Fd()), tiocmget, uintptr(unsafe.Pointer(&line)))
+	err := ioctl.Ioctl(p.f.Fd(), tiocmget, uintptr(unsafe.Pointer(&line)))
 	return line, err
 }
 
 // EnableModemLines
 // Set the indicated modem bits.
 func (p *Port) EnableModemLines(line ModemLine) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tiocmbis, uintptr(unsafe.Pointer(&line)))
+	return ioctl.Ioctl(p.f.Fd(), tiocmbis, uintptr(unsafe.Pointer(&line)))
 }
 
 // DisableModemLines
 // Clear the indicated modem bits.
 func (p *Port) DisableModemLines(line ModemLine) error {
-	return ioctl.Ioctl(int(p.f.Fd()), tiocmbic, uintptr(unsafe.Pointer(&line)))
+	return ioctl.Ioctl(p.f.Fd(), tiocmbic, uintptr(unsafe.Pointer(&line)))
 }
 
 func (attrs *Termios) MakeRaw() {
@@ -727,11 +727,11 @@ func (attrs *Termios2) SetSpeed(speed CFlag) {
 	attrs.Cflag |= speed
 }
 
-func (attrs *Termios2) SetCustomIOSpeed(ispeed, ospeed uint32) {
+func (attrs *Termios2) SetCustomIOSpeed(iSpeed, oSpeed uint32) {
 	attrs.Cflag &= ^(CBAUD)
 	attrs.Cflag |= BOTHER
-	attrs.ISpeed = ispeed
-	attrs.OSpeed = ospeed
+	attrs.ISpeed = iSpeed
+	attrs.OSpeed = oSpeed
 }
 
 func (attrs *Termios2) SetCustomSpeed(speed uint32) {
