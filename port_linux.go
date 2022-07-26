@@ -182,12 +182,12 @@ type RS485 struct {
 const (
 	// VINTR
 	// (003, ETX, Ctrl-C, or also 0177, DEL, rubout) Interrupt
-	// character (INTR).  Send a SIGINT signal.
+	// character (INTR). Send a SIGINT signal.
 	// Recognized when ISIG is set, and then not passed as input
 	VINTR = iota
 
 	// VQUIT
-	// (034,  FS,  Ctrl-\) Quit character (QUIT). Send SIGQUIT signal.
+	// (034, FS, Ctrl-\) Quit character (QUIT). Send SIGQUIT signal.
 	// Recognized when ISIG is set, and then not passed as input.
 	VQUIT
 
@@ -200,17 +200,17 @@ const (
 
 	// VKILL
 	// (025, NAK, Ctrl-U, or Ctrl-X, or also @) Kill character (KILL).
-	// This  erases  the input since the last EOF or beginning-of-line.
+	// This erases the input since the last EOF or beginning-of-line.
 	// Recognized when ICANON is set, and then not passed as input.
 	VKILL
 
 	// VEOF
-	// (004, EOT, Ctrl-D) End-of-file character (EOF).  More precisely:
-	// this  character  causes the pending tty buffer to be sent to the
-	// waiting user program without waiting for end-of-line.  If it  is
+	// (004, EOT, Ctrl-D) End-of-file character (EOF). More precisely:
+	// this character causes the pending tty buffer to be sent to the
+	// waiting user program without waiting for end-of-line. If it is
 	// the first character of the line, the read(2) in the user program
 	// returns 0, which signifies end-of-file.
-	// Recognized when  ICANON is set, and then not passed as input.
+	// Recognized when ICANON is set, and then not passed as input.
 	VEOF
 
 	// VTIME
@@ -227,14 +227,14 @@ const (
 	VSWTCH
 
 	// VSTART
-	// (021, DC1, Ctrl-Q) Start  character  (START).
+	// (021, DC1, Ctrl-Q) Start character (START).
 	// Restarts output stopped by the Stop character.
 	// Recognized when IXON is set, and then not passed as input.
 	VSTART
 
 	// VSTOP
-	// (023, DC3, Ctrl-S) Stop character  (STOP).
-	// Stop  output  until Start character typed.
+	// (023, DC3, Ctrl-S) Stop character (STOP).
+	// Stop output until Start character typed.
 	// Recognized when IXON is set, and then not passed as input.
 	VSTOP
 
@@ -260,8 +260,8 @@ const (
 	VDISCARD
 
 	// VWERASE
-	// (not  in  POSIX;  027,  ETB,  Ctrl-W)  Word erase (WERASE).
-	// Recognized when ICANON and IEXTEN are set, and then not  passed as input.
+	// (not in POSIX; 027, ETB, Ctrl-W) Word erase (WERASE).
+	// Recognized when ICANON and IEXTEN are set, and then not passed as input.
 	VWERASE
 
 	// VLNEXT
@@ -284,10 +284,10 @@ const (
 	IGNBRK = IFlag(0000001)
 
 	// BRKINT If IGNBRK is set, a BREAK is ignored.
-	// If it is not set but BRKINT is set, then a BREAK causes the input and  output  queues
+	// If it is not set but BRKINT is set, then a BREAK causes the input and output queues
 	// to be flushed, and if the terminal is the controlling terminal of a foreground process group,
 	// it will cause a SIGINT to be sent to this foreground process group.
-	// When  neither IGNBRK nor BRKINT are set, a BREAK reads as a null byte ('\0'),
+	// When neither IGNBRK nor BRKINT are set, a BREAK reads as a null byte ('\0'),
 	// except when PARMRK is set, in which case it reads as the sequence \377 \0 \0.
 	BRKINT = IFlag(0000002)
 
@@ -325,7 +325,7 @@ const (
 	// IXON Enable XON/XOFF flow control on output.
 	IXON = IFlag(0002000)
 
-	// IXANY (XSI)  Typing  any  character will restart stopped output.
+	// IXANY (XSI) Typing any character will restart stopped output.
 	// (The default is to allow just the START character to restart output.)
 	IXANY = IFlag(0004000)
 
@@ -336,7 +336,7 @@ const (
 	// Linux does not implement this bit, and acts as if it is always set.
 	IMAXBEL = IFlag(0020000)
 
-	// IUTF8 (since Linux 2.6.4) (not  in POSIX) Input is UTF8; this allows character-erase to be
+	// IUTF8 (since Linux 2.6.4) (not in POSIX) Input is UTF8; this allows character-erase to be
 	// correctly performed in cooked mode.
 	IUTF8 = IFlag(0040000)
 )
@@ -382,7 +382,7 @@ const (
 	CR2   = OFlag(0002000)
 	CR3   = OFlag(0003000)
 
-	// TABDLY Horizontal tab delay mask.  Values are TAB0,  TAB1,  TAB2,  TAB3 (or XTABS, but see the BUGS section)
+	// TABDLY Horizontal tab delay mask. Values are TAB0, TAB1, TAB2, TAB3 (or XTABS, but see the BUGS section)
 	// A value of TAB3, that is, XTABS, expands tabs to spaces (with tab stops every eight columns).
 	TABDLY = OFlag(0014000)
 	TAB0   = OFlag(0000000)
@@ -391,7 +391,7 @@ const (
 	TAB3   = OFlag(0014000)
 	XTABS  = OFlag(0014000)
 
-	// BSDLY Backspace  delay  mask.  Values are BS0 or BS1.  (Has never been implemented)
+	// BSDLY Backspace delay mask. Values are BS0 or BS1. (Has never been implemented)
 	BSDLY = OFlag(0020000)
 	BS0   = OFlag(0000000)
 	BS1   = OFlag(0020000)
@@ -401,7 +401,7 @@ const (
 	VT0   = OFlag(0000000)
 	VT1   = OFlag(0040000)
 
-	// FFDLY Form feed delay mask. Values  are  FF0  or  FF1.
+	// FFDLY Form feed delay mask. Values are FF0 or FF1.
 	FFDLY = OFlag(0100000)
 	FF0   = OFlag(0000000)
 	FF1   = OFlag(0100000)
@@ -411,7 +411,7 @@ type CFlag uint32
 
 // Control flags
 const (
-	// CBAUD (not in POSIX) Baud speed mask (4+1   bits).
+	// CBAUD (not in POSIX) Baud speed mask (4+1 bits).
 	CBAUD  = CFlag(0010017)
 	B0     = CFlag(0000000)
 	B50    = CFlag(0000001)
@@ -432,7 +432,7 @@ const (
 	EXTA   = B19200
 	EXTB   = B38400
 
-	// CSIZE Character size mask.  Values are CS5, CS6, CS7, or CS8.
+	// CSIZE Character size mask. Values are CS5, CS6, CS7, or CS8.
 	CSIZE = CFlag(0000060)
 	// CS5 Character is 5 bit
 	CS5 = CFlag(0000000)
@@ -452,7 +452,7 @@ const (
 	// PARENB Enable parity generation on output and parity checking for input.
 	PARENB = CFlag(0000400)
 
-	// PARODD If  set, then parity for input and output is odd; otherwise even parity is used.
+	// PARODD If set, then parity for input and output is odd; otherwise even parity is used.
 	PARODD = CFlag(0001000)
 
 	// HUPCL Lower modem control lines after last process closes the device (hang up).
@@ -465,7 +465,7 @@ const (
 	// POSIX says that the baud speed is stored in the termios structure
 	// without specifying where precisely, and provides cfgetispeed() and
 	// cfsetispeed() for getting at it.
-	// Some systems use  bits  selected by CBAUD in c_cflag, other systems
+	// Some systems use bits selected by CBAUD in c_cflag, other systems
 	// use separate fields, for example, sg_ispeed and sg_ospeed.
 	CBAUDEX = CFlag(0010000)
 	BOTHER  = CFlag(0010000)
@@ -505,7 +505,7 @@ type LFlag uint32
 
 // Line flags
 const (
-	// ISIG When  any  of  the characters INTR, QUIT, SUSP, or DSUSP are received,
+	// ISIG When any of the characters INTR, QUIT, SUSP, or DSUSP are received,
 	// generate corresponding signal.
 	ISIG = LFlag(0000001)
 
@@ -513,14 +513,14 @@ const (
 	ICANON = LFlag(0000002)
 
 	// XCASE (not in POSIX; not supported under Linux) If ICANON is also set,
-	// terminal  is  uppercase  only.  Input is converted to lowercase,
-	// except for characters preceded by \.  On output, uppercase characters
+	// terminal is uppercase only. Input is converted to lowercase,
+	// except for characters preceded by \. On output, uppercase characters
 	// are preceded by \ and lowercase characters are converted to uppercase.
 	XCASE = LFlag(0000004)
 
 	// ECHO Echo input characters.
 	ECHO = LFlag(0000010)
-	// ECHOE  If  ICANON is also set, the ERASE character erases the
+	// ECHOE If ICANON is also set, the ERASE character erases the
 	// preceding input character, and WERASE erases the preceding word.
 	ECHOE = LFlag(0000020)
 
@@ -538,27 +538,27 @@ const (
 	// process which tries to write to its controlling terminal.
 	TOSTOP = LFlag(0000400)
 
-	// ECHOCTL (not in POSIX) If ECHO is also set, terminal special  characters
+	// ECHOCTL (not in POSIX) If ECHO is also set, terminal special characters
 	// other than TAB, NL, START, and STOP are echoed as ^X, where X is
 	// the character with ASCII code 0x40 greater than the special
 	// character. For example, character 0x08 (BS) is echoed as ^H.
 	//
 	ECHOCTL = LFlag(0001000)
 
-	// ECHOPRT (not in POSIX) If ICANON and ECHO are also set, characters  are
-	// printed as they are being  erased.
+	// ECHOPRT (not in POSIX) If ICANON and ECHO are also set, characters are
+	// printed as they are being erased.
 	ECHOPRT = LFlag(0002000)
 
-	// ECHOKE (not in POSIX) If ICANON is also set, KILL is echoed by  erasing
-	// each  character on the line, as specified by ECHOE and ECHOPRT.
+	// ECHOKE (not in POSIX) If ICANON is also set, KILL is echoed by erasing
+	// each character on the line, as specified by ECHOE and ECHOPRT.
 	ECHOKE = LFlag(0004000)
 
 	// FLUSHO (not in POSIX; not supported under Linux) Output is being
 	// flushed. This flag is toggled by typing the DISCARD character.
 	FLUSHO = LFlag(0010000)
 
-	// PENDIN (not  in POSIX; not supported under Linux) All characters in the
-	// input queue are reprinted  when  the  next  character  is  read.
+	// PENDIN (not in POSIX; not supported under Linux) All characters in the
+	// input queue are reprinted when the next character is read.
 	PENDIN = LFlag(0040000)
 
 	// IEXTEN Enable implementation-defined input processing.
@@ -597,13 +597,13 @@ const (
 
 	// TCSADRAIN
 	// the change occurs after all output written to fd has been transmitted.
-	// This option should be  used  when  changing  parameters that affect output.
+	// This option should be used when changing parameters that affect output.
 	TCSADRAIN
 
 	// TCSAFLUSH
-	// the  change  occurs  after  all output written to the object
-	// referred by fd has been transmitted, and all input that  has  been
-	// received  but  not  read  will be discarded before the change is made
+	// the change occurs after all output written to the object
+	// referred by fd has been transmitted, and all input that has been
+	// received but not read will be discarded before the change is made
 	TCSAFLUSH
 )
 
@@ -780,24 +780,24 @@ func (p *Port) SetSerial(s *Serial) error {
 // SendBreak
 // If the terminal is using asynchronous serial data
 // transmission, and arg is zero, then send a break (a stream
-// of zero bits) for between 0.25 and 0.5 seconds.  If the
+// of zero bits) for between 0.25 and 0.5 seconds. If the
 // terminal is not using asynchronous serial data
 // transmission, then either a break is sent, or the function
-// returns without doing anything.  When arg is nonzero,
+// returns without doing anything. When arg is nonzero,
 // nobody knows what will happen.
 //
 // (SVr4, UnixWare, Solaris, and Linux treat
 // tcsendbreak(fd,arg) with nonzero arg like tcdrain(fd).
 // SunOS treats arg as a multiplier, and sends a stream of
-// bits arg times as long as done for zero arg.  DG/UX and
+// bits arg times as long as done for zero arg. DG/UX and
 // AIX treat arg (when nonzero) as a time interval measured
-// in milliseconds.  HP-UX ignores arg.)
+// in milliseconds. HP-UX ignores arg.)
 func (p *Port) SendBreak(arg int) error {
 	return ioctl.Ioctl(p.f.Fd(), tcsbrk, uintptr(arg))
 }
 
 // SendBreakPosix
-// So-called "POSIX version" of TCSBRK.  It treats nonzero
+// So-called "POSIX version" of TCSBRK. It treats nonzero
 // arg as a time interval measured in deciseconds, and does
 // nothing when the driver does not support breaks.
 func (p *Port) SendBreakPosix(arg int) error {
