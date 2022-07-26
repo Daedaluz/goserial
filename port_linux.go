@@ -280,96 +280,196 @@ type IFlag uint32
 
 // Input flags
 const (
-	IGNBRK  = IFlag(0000001)
-	BRKINT  = IFlag(0000002)
-	IGNPAR  = IFlag(0000004)
-	PARMRK  = IFlag(0000010)
-	INPCK   = IFlag(0000020)
-	ISTRIP  = IFlag(0000040)
-	INLCR   = IFlag(0000100)
-	IGNCR   = IFlag(0000200)
-	ICRNL   = IFlag(0000400)
-	IUCLC   = IFlag(0001000)
-	IXON    = IFlag(0002000)
-	IXANY   = IFlag(0004000)
-	IXOFF   = IFlag(0010000)
+	// IGNBRK Ignore BREAK condition on input.
+	IGNBRK = IFlag(0000001)
+
+	// BRKINT If IGNBRK is set, a BREAK is ignored.
+	// If it is not set but BRKINT is set, then a BREAK causes the input and  output  queues
+	// to be flushed, and if the terminal is the controlling terminal of a foreground process group,
+	// it will cause a SIGINT to be sent to this foreground process group.
+	// When  neither IGNBRK nor BRKINT are set, a BREAK reads as a null byte ('\0'),
+	// except when PARMRK is set, in which case it reads as the sequence \377 \0 \0.
+	BRKINT = IFlag(0000002)
+
+	// IGNPAR Ignore framing errors and parity errors.
+	IGNPAR = IFlag(0000004)
+
+	// PARMRK If this bit is set, input bytes with parity or framing errors
+	// are marked when passed to the program.
+	// This bit is meaningful only when INPCK is set and IGNPAR is not set.
+	// The way erroneous bytes are marked is with two preceding bytes, \377 and \0.
+	// Thus, the program actually reads three bytes for one erroneous byte received from the terminal.
+	// If a valid byte has the value \377, and ISTRIP (see below) is not set, the program might
+	// confuse it with the prefix that marks a parity error.
+	// Therefore, a valid byte \377 is passed to the program as two bytes, \377 \377 , in this case.
+	PARMRK = IFlag(0000010)
+
+	// INPCK Enable input parity checking.
+	INPCK = IFlag(0000020)
+
+	// ISTRIP Strip off eighth bit.
+	ISTRIP = IFlag(0000040)
+
+	// INLCR Translate NL to CR on input.
+	INLCR = IFlag(0000100)
+
+	// IGNCR Ignore carriage return on input.
+	IGNCR = IFlag(0000200)
+
+	// ICRNL Translate carriage return to newline on input (unless IGNCR is set).
+	ICRNL = IFlag(0000400)
+
+	// IUCLC (not in POSIX) Map uppercase characters to lowercase on input.
+	IUCLC = IFlag(0001000)
+
+	// IXON Enable XON/XOFF flow control on output.
+	IXON = IFlag(0002000)
+
+	// IXANY (XSI)  Typing  any  character will restart stopped output.
+	// (The default is to allow just the START character to restart output.)
+	IXANY = IFlag(0004000)
+
+	// IXOFF Enable XON/XOFF flow control on input.
+	IXOFF = IFlag(0010000)
+
+	// IMAXBEL (not in POSIX) Ring bell when input queue is full.
+	// Linux does not implement this bit, and acts as if it is always set.
 	IMAXBEL = IFlag(0020000)
-	IUTF8   = IFlag(0040000)
+
+	// IUTF8 (since Linux 2.6.4) (not  in POSIX) Input is UTF8; this allows character-erase to be
+	// correctly performed in cooked mode.
+	IUTF8 = IFlag(0040000)
 )
 
 type OFlag uint32
 
 // Output flags
 const (
-	OPOST  = OFlag(0000001)
-	OLCUC  = OFlag(0000002)
-	ONLCR  = OFlag(0000004)
-	OCRNL  = OFlag(0000010)
-	ONOCR  = OFlag(0000020)
+	// OPOST Enable implementation-defined output processing.
+	OPOST = OFlag(0000001)
+
+	// OLCUC (not in POSIX) Map lowercase characters to uppercase on output.
+	OLCUC = OFlag(0000002)
+
+	// ONLCR (XSI) Map NL to CR-NL on output.
+	ONLCR = OFlag(0000004)
+
+	// OCRNL Map CR to NL on output.
+	OCRNL = OFlag(0000010)
+
+	// ONOCR Don't output CR at column 0.
+	ONOCR = OFlag(0000020)
+
+	// ONLRET Don't output CR.
 	ONLRET = OFlag(0000040)
-	OFILL  = OFlag(0000100)
-	OFDEL  = OFlag(0000200)
-	NLDLY  = OFlag(0000400)
-	NL0    = OFlag(0000000)
-	NL1    = OFlag(0000400)
-	CRDLY  = OFlag(0003000)
-	CR0    = OFlag(0000000)
-	CR1    = OFlag(0001000)
-	CR2    = OFlag(0002000)
-	CR3    = OFlag(0003000)
+
+	// OFILL Send fill characters for a delay, rather than using a timed delay.
+	OFILL = OFlag(0000100)
+
+	// OFDEL Fill character is ASCII DEL (0177). If unset, fill character is ASCII NUL ('\0').
+	// (Not implemented on Linux.)
+	OFDEL = OFlag(0000200)
+
+	// NLDLY Newline delay mask. Values are NL0 and NL1.
+	NLDLY = OFlag(0000400)
+	NL0   = OFlag(0000000)
+	NL1   = OFlag(0000400)
+
+	// CRDLY Carriage return delay mask. Values are CR0, CR1, CR2, or CR3.
+	CRDLY = OFlag(0003000)
+	CR0   = OFlag(0000000)
+	CR1   = OFlag(0001000)
+	CR2   = OFlag(0002000)
+	CR3   = OFlag(0003000)
+
+	// TABDLY Horizontal tab delay mask.  Values are TAB0,  TAB1,  TAB2,  TAB3 (or XTABS, but see the BUGS section)
+	// A value of TAB3, that is, XTABS, expands tabs to spaces (with tab stops every eight columns).
 	TABDLY = OFlag(0014000)
 	TAB0   = OFlag(0000000)
 	TAB1   = OFlag(0004000)
 	TAB2   = OFlag(0010000)
 	TAB3   = OFlag(0014000)
 	XTABS  = OFlag(0014000)
-	BSDLY  = OFlag(0020000)
-	BS0    = OFlag(0000000)
-	BS1    = OFlag(0020000)
-	VTDLY  = OFlag(0040000)
-	VT0    = OFlag(0000000)
-	VT1    = OFlag(0040000)
-	FFDLY  = OFlag(0100000)
-	FF0    = OFlag(0000000)
-	FF1    = OFlag(0100000)
+
+	// BSDLY Backspace  delay  mask.  Values are BS0 or BS1.  (Has never been implemented)
+	BSDLY = OFlag(0020000)
+	BS0   = OFlag(0000000)
+	BS1   = OFlag(0020000)
+
+	// VTDLY Vertical tab delay mask. Values are VT0 or VT1.
+	VTDLY = OFlag(0040000)
+	VT0   = OFlag(0000000)
+	VT1   = OFlag(0040000)
+
+	// FFDLY Form feed delay mask. Values  are  FF0  or  FF1.
+	FFDLY = OFlag(0100000)
+	FF0   = OFlag(0000000)
+	FF1   = OFlag(0100000)
 )
 
 type CFlag uint32
 
 // Control flags
 const (
-	CBAUD    = CFlag(0010017)
-	B0       = CFlag(0000000)
-	B50      = CFlag(0000001)
-	B75      = CFlag(0000002)
-	B110     = CFlag(0000003)
-	B134     = CFlag(0000004)
-	B150     = CFlag(0000005)
-	B200     = CFlag(0000006)
-	B300     = CFlag(0000007)
-	B600     = CFlag(0000010)
-	B1200    = CFlag(0000011)
-	B1800    = CFlag(0000012)
-	B2400    = CFlag(0000013)
-	B4800    = CFlag(0000014)
-	B9600    = CFlag(0000015)
-	B19200   = CFlag(0000016)
-	B38400   = CFlag(0000017)
-	EXTA     = B19200
-	EXTB     = B38400
-	CSIZE    = CFlag(0000060)
-	CS5      = CFlag(0000000)
-	CS6      = CFlag(0000020)
-	CS7      = CFlag(0000040)
-	CS8      = CFlag(0000060)
-	CSTOPB   = CFlag(0000100)
-	CREAD    = CFlag(0000200)
-	PARENB   = CFlag(0000400)
-	PARODD   = CFlag(0001000)
-	HUPCL    = CFlag(0002000)
-	CLOCAL   = CFlag(0004000)
-	CBAUDEX  = CFlag(0010000)
-	BOTHER   = CFlag(0010000)
+	// CBAUD (not in POSIX) Baud speed mask (4+1   bits).
+	CBAUD  = CFlag(0010017)
+	B0     = CFlag(0000000)
+	B50    = CFlag(0000001)
+	B75    = CFlag(0000002)
+	B110   = CFlag(0000003)
+	B134   = CFlag(0000004)
+	B150   = CFlag(0000005)
+	B200   = CFlag(0000006)
+	B300   = CFlag(0000007)
+	B600   = CFlag(0000010)
+	B1200  = CFlag(0000011)
+	B1800  = CFlag(0000012)
+	B2400  = CFlag(0000013)
+	B4800  = CFlag(0000014)
+	B9600  = CFlag(0000015)
+	B19200 = CFlag(0000016)
+	B38400 = CFlag(0000017)
+	EXTA   = B19200
+	EXTB   = B38400
+
+	// CSIZE Character size mask.  Values are CS5, CS6, CS7, or CS8.
+	CSIZE = CFlag(0000060)
+	// CS5 Character is 5 bit
+	CS5 = CFlag(0000000)
+	// CS6 Character is 6 bit
+	CS6 = CFlag(0000020)
+	// CS7 Character is 7 bit
+	CS7 = CFlag(0000040)
+	// CS8 Character is 8 bit
+	CS8 = CFlag(0000060)
+
+	// CSTOPB Set two stop bits, rather than one.
+	CSTOPB = CFlag(0000100)
+
+	// CREAD Enable receiver.
+	CREAD = CFlag(0000200)
+
+	// PARENB Enable parity generation on output and parity checking for input.
+	PARENB = CFlag(0000400)
+
+	// PARODD If  set, then parity for input and output is odd; otherwise even parity is used.
+	PARODD = CFlag(0001000)
+
+	// HUPCL Lower modem control lines after last process closes the device (hang up).
+	HUPCL = CFlag(0002000)
+
+	// CLOCAL Ignore modem control lines.
+	CLOCAL = CFlag(0004000)
+
+	// CBAUDEX (not in POSIX) Extra baud speed mask (1 bit).
+	// POSIX says that the baud speed is stored in the termios structure
+	// without specifying where precisely, and provides cfgetispeed() and
+	// cfsetispeed() for getting at it.
+	// Some systems use  bits  selected by CBAUD in c_cflag, other systems
+	// use separate fields, for example, sg_ispeed and sg_ospeed.
+	CBAUDEX = CFlag(0010000)
+	BOTHER  = CFlag(0010000)
+
 	B57600   = CFlag(0010001)
 	B115200  = CFlag(0010002)
 	B230400  = CFlag(0010003)
@@ -385,31 +485,89 @@ const (
 	B3000000 = CFlag(0010015)
 	B3500000 = CFlag(0010016)
 	B4000000 = CFlag(0010017)
-	CIBAUD   = CFlag(002003600000) /* input baud rate */
-	CMSPAR   = CFlag(010000000000) /* mark or space (stick) parity */
-	CRTSCTS  = CFlag(020000000000) /* flow control */
-	IBSHIFT  = CFlag(16)           /* Shift from CBAUD to CIBAUD */
+
+	// CIBAUD (not in POSIX) Mask for input speeds.
+	// The values for the CIBAUD bits are the same as the values for the CBAUD bits,
+	// shifted left IBSHIFT bits.
+	CIBAUD = CFlag(002003600000) /* input baud rate */
+
+	// CMSPAR (not in POSIX) Use "stick" (mark/space) parity
+	// (supported on certain serial devices): if PARODD is set, the parity bit is always 1;
+	// if PARODD is not set, then the parity bit is always 0.
+	CMSPAR = CFlag(010000000000) /* mark or space (stick) parity */
+
+	// CRTSCTS (not in POSIX) Enable RTS/CTS (hardware) flow control.
+	CRTSCTS = CFlag(020000000000) /* flow control */
+	IBSHIFT = CFlag(16)           /* Shift from CBAUD to CIBAUD */
 )
 
 type LFlag uint32
 
 // Line flags
 const (
-	ISIG    = LFlag(0000001)
-	ICANON  = LFlag(0000002)
-	XCASE   = LFlag(0000004)
-	ECHO    = LFlag(0000010)
-	ECHOE   = LFlag(0000020)
-	ECHOK   = LFlag(0000040)
-	ECHONL  = LFlag(0000100)
-	NOFLSH  = LFlag(0000200)
-	TOSTOP  = LFlag(0000400)
+	// ISIG When  any  of  the characters INTR, QUIT, SUSP, or DSUSP are received,
+	// generate corresponding signal.
+	ISIG = LFlag(0000001)
+
+	// ICANON Enable canonical mode (described below).
+	ICANON = LFlag(0000002)
+
+	// XCASE (not in POSIX; not supported under Linux) If ICANON is also set,
+	// terminal  is  uppercase  only.  Input is converted to lowercase,
+	// except for characters preceded by \.  On output, uppercase characters
+	// are preceded by \ and lowercase characters are converted to uppercase.
+	XCASE = LFlag(0000004)
+
+	// ECHO Echo input characters.
+	ECHO = LFlag(0000010)
+	// ECHOE  If  ICANON is also set, the ERASE character erases the
+	// preceding input character, and WERASE erases the preceding word.
+	ECHOE = LFlag(0000020)
+
+	// ECHOK If ICANON is also set, the KILL character erases the current line.
+	ECHOK = LFlag(0000040)
+
+	// ECHONL If ICANON is also set, echo the NL character even if ECHO is not set.
+	ECHONL = LFlag(0000100)
+
+	// NOFLSH Disable flushing the input and output queues when generating
+	// signals for the INT, QUIT, and SUSP characters.
+	NOFLSH = LFlag(0000200)
+
+	// TOSTOP Send the SIGTTOU signal to the process group of a background
+	// process which tries to write to its controlling terminal.
+	TOSTOP = LFlag(0000400)
+
+	// ECHOCTL (not in POSIX) If ECHO is also set, terminal special  characters
+	// other than TAB, NL, START, and STOP are echoed as ^X, where X is
+	// the character with ASCII code 0x40 greater than the special
+	// character. For example, character 0x08 (BS) is echoed as ^H.
+	//
 	ECHOCTL = LFlag(0001000)
+
+	// ECHOPRT (not in POSIX) If ICANON and ECHO are also set, characters  are
+	// printed as they are being  erased.
 	ECHOPRT = LFlag(0002000)
-	ECHOKE  = LFlag(0004000)
-	FLUSHO  = LFlag(0010000)
-	PENDIN  = LFlag(0040000)
-	IEXTEN  = LFlag(0100000)
+
+	// ECHOKE (not in POSIX) If ICANON is also set, KILL is echoed by  erasing
+	// each  character on the line, as specified by ECHOE and ECHOPRT.
+	ECHOKE = LFlag(0004000)
+
+	// FLUSHO (not in POSIX; not supported under Linux) Output is being
+	// flushed. This flag is toggled by typing the DISCARD character.
+	FLUSHO = LFlag(0010000)
+
+	// PENDIN (not  in POSIX; not supported under Linux) All characters in the
+	// input queue are reprinted  when  the  next  character  is  read.
+	PENDIN = LFlag(0040000)
+
+	// IEXTEN Enable implementation-defined input processing.
+	// This flag, as well as ICANON must be enabled for the special characters EOL2,
+	// LNEXT, REPRINT, WERASE to be interpreted, and for the IUCLC flag
+	// to be effective.
+	IEXTEN = LFlag(0100000)
+
+	// EXTPROC external processing
 	EXTPROC = LFlag(0200000)
 )
 
