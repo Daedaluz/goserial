@@ -1,8 +1,10 @@
 package serial
 
 import (
+	"fmt"
 	ioctl "github.com/daedaluz/goioctl"
 	"os"
+	"strings"
 	"syscall"
 	"unsafe"
 )
@@ -501,6 +503,35 @@ const (
 	// loopback
 	TIOCM_LOOP = ModemLine(0x8000)
 )
+
+func (m ModemLine) String() string {
+	flags := make([]string, 0, len(modemLineStrings))
+	for i := 1; i <= int(TIOCM_LOOP); i <<= 1 {
+		if int(m)&i > 0 {
+			if flag, ok := modemLineStrings[ModemLine(i)]; ok {
+				flags = append(flags, flag)
+			} else {
+				flags = append(flags, fmt.Sprintf("Unknown(%x)", i))
+			}
+		}
+	}
+	return fmt.Sprintf("[%s]", strings.Join(flags, "|"))
+}
+
+var modemLineStrings = map[ModemLine]string{
+	TIOCM_LE:   "LE",
+	TIOCM_DTR:  "DTR",
+	TIOCM_RTS:  "RTS",
+	TIOCM_ST:   "ST",
+	TIOCM_SR:   "SR",
+	TIOCM_CTS:  "CTS",
+	TIOCM_CAR:  "CAR",
+	TIOCM_RNG:  "RNG",
+	TIOCM_DSR:  "DSR",
+	TIOCM_OUT1: "OUT1",
+	TIOCM_OUT2: "OUT2",
+	TIOCM_LOOP: "LOOP",
+}
 
 type Discipline byte
 
