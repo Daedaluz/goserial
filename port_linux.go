@@ -5,7 +5,6 @@ import (
 	"github.com/daedaluz/fdev/poll"
 	ioctl "github.com/daedaluz/goioctl"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 	"unsafe"
@@ -732,7 +731,6 @@ func (o *Options) SetReadTimeout(timeout time.Duration) *Options {
 
 type Port struct {
 	options *Options
-	opLock  sync.Mutex
 	closed  bool
 	f       int
 }
@@ -747,15 +745,12 @@ func Open(name string, opts *Options) (*Port, error) {
 	}
 	return &Port{
 		options: opts,
-		opLock:  sync.Mutex{},
 		closed:  false,
 		f:       fd,
 	}, nil
 }
 
 func (p *Port) Write(data []byte) (n int, err error) {
-	p.opLock.Lock()
-	defer p.opLock.Unlock()
 	if p.closed {
 		return 0, ErrClosed
 	}
@@ -770,8 +765,6 @@ func (p *Port) readTimeout(data []byte, timeout time.Duration) (int, error) {
 }
 
 func (p *Port) Read(data []byte) (n int, err error) {
-	p.opLock.Lock()
-	defer p.opLock.Unlock()
 	if p.closed {
 		return 0, ErrClosed
 	}
@@ -782,8 +775,6 @@ func (p *Port) Read(data []byte) (n int, err error) {
 }
 
 func (p *Port) ReadTimeout(data []byte, timeout time.Duration) (n int, err error) {
-	p.opLock.Lock()
-	defer p.opLock.Unlock()
 	return p.readTimeout(data, timeout)
 }
 
@@ -792,8 +783,6 @@ func (p *Port) SetReadTimeout(timeout time.Duration) {
 }
 
 func (p *Port) Fd() int {
-	p.opLock.Lock()
-	defer p.opLock.Unlock()
 	if p.closed {
 		return -1
 	}
@@ -801,8 +790,6 @@ func (p *Port) Fd() int {
 }
 
 func (p *Port) Close() error {
-	p.opLock.Lock()
-	defer p.opLock.Unlock()
 	p.closed = true
 	p.f = -1
 	return syscall.Close(p.f)
