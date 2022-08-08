@@ -714,8 +714,6 @@ const (
 	N_HCI
 )
 
-var ErrClosed = fmt.Errorf("port already closed")
-
 type Options struct {
 	ReadTimeout time.Duration
 	OpenMode    int
@@ -732,8 +730,7 @@ func (o *Options) SetReadTimeout(timeout time.Duration) *Options {
 
 type Port struct {
 	options *Options
-	closed  atomic.Bool
-	f       int
+	f       atomic.Value
 }
 
 func Open(name string, opts *Options) (*Port, error) {
@@ -742,36 +739,34 @@ func Open(name string, opts *Options) (*Port, error) {
 	}
 	fd, err := syscall.Open(name, opts.OpenMode, 0)
 	if err != nil {
-		return nil, err
+		return nil, wrapErr("", err)
 	}
-	return &Port{
+	res := &Port{
 		options: opts,
-		f:       fd,
-	}, nil
+	}
+	res.f.Store(fd)
+	return res, nil
 }
 
 func (p *Port) Write(data []byte) (n int, err error) {
-	if p.closed.Load() {
-		return 0, ErrClosed
-	}
-	return syscall.Write(p.f, data)
+	x, err := syscall.Write(p.f.Load().(int), data)
+	return x, wrapErr("", err)
 }
 
 func (p *Port) readTimeout(data []byte, timeout time.Duration) (int, error) {
-	if err := poll.WaitInput(p.f, timeout); err != nil {
-		return 0, err
+	if err := poll.WaitInput(p.f.Load().(int), timeout); err != nil {
+		return 0, wrapErr("", err)
 	}
-	return syscall.Read(p.f, data)
+	n, err := syscall.Read(p.f.Load().(int), data)
+	return n, wrapErr("", err)
 }
 
 func (p *Port) Read(data []byte) (n int, err error) {
-	if p.closed.Load() {
-		return 0, ErrClosed
-	}
 	if p.options.ReadTimeout > -1 {
 		return p.readTimeout(data, p.options.ReadTimeout)
 	}
-	return syscall.Read(p.f, data)
+	n, err = syscall.Read(p.f.Load().(int), data)
+	return n, wrapErr("", err)
 }
 
 func (p *Port) ReadTimeout(data []byte, timeout time.Duration) (n int, err error) {
@@ -783,58 +778,54 @@ func (p *Port) SetReadTimeout(timeout time.Duration) {
 }
 
 func (p *Port) Fd() int {
-	if p.closed.Load() {
-		return -1
-	}
-	return p.f
+	return p.f.Load().(int)
 }
 
 func (p *Port) Close() error {
-	if !p.closed.Swap(true) {
-		fd := p.f
-		p.f = -1
-		return syscall.Close(fd)
+	if x := p.f.Swap(-1); x != -1 {
+		return wrapErr("", syscall.Close(x.(int)))
 	}
 	return ErrClosed
 }
 
 func (p *Port) GetAttr() (*Termios, error) {
 	attrs := &Termios{}
-	err := ioctl.Ioctl(uintptr(p.f), tcgets, uintptr(unsafe.Pointer(attrs)))
+	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tcgets, uintptr(unsafe.Pointer(attrs)))
 	if err != nil {
-		return nil, err
+		return nil, wrapErr("", err)
 	}
 	return attrs, nil
 }
 
 func (p *Port) SetAttr(when Action, attrs *Termios) error {
-	return ioctl.Ioctl(uintptr(p.f), tcsets+uintptr(when), uintptr(unsafe.Pointer(attrs)))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsets+uintptr(when), uintptr(unsafe.Pointer(attrs))))
 }
 
 func (p *Port) GetAttr2() (*Termios2, error) {
 	attrs := &Termios2{}
-	err := ioctl.Ioctl(uintptr(p.f), tcgets2, uintptr(unsafe.Pointer(attrs)))
+	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tcgets2, uintptr(unsafe.Pointer(attrs)))
 	if err != nil {
-		return nil, err
+		return nil, wrapErr("", err)
 	}
 	return attrs, nil
 }
 
 func (p *Port) SetAttr2(when Action, attrs *Termios2) error {
-	return ioctl.Ioctl(uintptr(p.f), tcsets2+uintptr(when), uintptr(unsafe.Pointer(attrs)))
+	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsets2+uintptr(when), uintptr(unsafe.Pointer(attrs)))
+	return wrapErr("", err)
 }
 
 func (p *Port) GetSerial() (*Serial, error) {
 	serial := &Serial{}
-	err := ioctl.Ioctl(uintptr(p.f), tiocgserial, uintptr(unsafe.Pointer(serial)))
+	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgserial, uintptr(unsafe.Pointer(serial)))
 	if err != nil {
-		return nil, err
+		return nil, wrapErr("", err)
 	}
 	return serial, nil
 }
 
 func (p *Port) SetSerial(s *Serial) error {
-	return ioctl.Ioctl(uintptr(p.f), tiocsserial, uintptr(unsafe.Pointer(s)))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsserial, uintptr(unsafe.Pointer(s))))
 }
 
 // SendBreak
@@ -853,7 +844,7 @@ func (p *Port) SetSerial(s *Serial) error {
 // AIX treat arg (when nonzero) as a time interval measured
 // in milliseconds. HP-UX ignores arg.)
 func (p *Port) SendBreak(arg int) error {
-	return ioctl.Ioctl(uintptr(p.f), tcsbrk, uintptr(arg))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrk, uintptr(arg)))
 }
 
 // SendBreakPosix
@@ -861,48 +852,48 @@ func (p *Port) SendBreak(arg int) error {
 // arg as a time interval measured in deciseconds, and does
 // nothing when the driver does not support breaks.
 func (p *Port) SendBreakPosix(arg int) error {
-	return ioctl.Ioctl(uintptr(p.f), tcsbrkp, uintptr(arg))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrkp, uintptr(arg)))
 }
 
 // SetBreak
 // Turn break on, that is, start sending zero bits.
 func (p *Port) SetBreak() error {
-	return ioctl.Ioctl(uintptr(p.f), tiocsbrk, 1)
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsbrk, 1))
 }
 
 // ClearBreak
 // Turn break off, that is, stop sending zero bits.
 func (p *Port) ClearBreak() error {
-	return ioctl.Ioctl(uintptr(p.f), tioccbrk, 1)
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tioccbrk, 1))
 }
 
 // Drain
 // waits until all output written to the Port has been transmitted.
 func (p *Port) Drain() error {
-	return ioctl.Ioctl(uintptr(p.f), tcsbrk, 1)
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrk, 1))
 }
 
 // Flush
 // discards data written to the Port but not transmitted,
 // or data received but not read, depending on the queue
 func (p *Port) Flush(queue Queue) error {
-	return ioctl.Ioctl(uintptr(p.f), tcflsh, uintptr(queue))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcflsh, uintptr(queue)))
 }
 
 // Flow
 // suspends transmission or reception of data on the Port,
 // depending on the flow value
 func (p *Port) Flow(flow Flow) error {
-	return ioctl.Ioctl(uintptr(p.f), tcxonc, uintptr(flow))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcxonc, uintptr(flow)))
 }
 
 // GetRS485
 // Returns current rs485 configuration
 func (p *Port) GetRS485() (*RS485, error) {
 	rs485cfg := &RS485{}
-	err := ioctl.Ioctl(uintptr(p.f), tiocgrs485, uintptr(unsafe.Pointer(rs485cfg)))
+	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgrs485, uintptr(unsafe.Pointer(rs485cfg)))
 	if err != nil {
-		return nil, err
+		return nil, wrapErr("", err)
 	}
 	return rs485cfg, nil
 }
@@ -910,7 +901,7 @@ func (p *Port) GetRS485() (*RS485, error) {
 // SetRS485
 // Set rs485 parameters
 func (p *Port) SetRS485(cfg *RS485) error {
-	return ioctl.Ioctl(uintptr(p.f), tiocsrs485, uintptr(unsafe.Pointer(cfg)))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsrs485, uintptr(unsafe.Pointer(cfg))))
 }
 
 // MakeRaw
@@ -918,36 +909,36 @@ func (p *Port) SetRS485(cfg *RS485) error {
 func (p *Port) MakeRaw() error {
 	attrs, err := p.GetAttr()
 	if err != nil {
-		return err
+		return wrapErr("", err)
 	}
 	attrs.MakeRaw()
-	return p.SetAttr(TCSANOW, attrs)
+	return wrapErr("", p.SetAttr(TCSANOW, attrs))
 }
 
 // SetModemLines
 // Set the status of modem bits.
 func (p *Port) SetModemLines(line ModemLine) error {
-	return ioctl.Ioctl(uintptr(p.f), tiocmset, uintptr(unsafe.Pointer(&line)))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmset, uintptr(unsafe.Pointer(&line))))
 }
 
 // GetModemLines
 // Get the status of modem bits.
 func (p *Port) GetModemLines() (ModemLine, error) {
 	var line ModemLine
-	err := ioctl.Ioctl(uintptr(p.f), tiocmget, uintptr(unsafe.Pointer(&line)))
-	return line, err
+	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmget, uintptr(unsafe.Pointer(&line)))
+	return line, wrapErr("", err)
 }
 
 // EnableModemLines
 // Set the indicated modem bits.
 func (p *Port) EnableModemLines(line ModemLine) error {
-	return ioctl.Ioctl(uintptr(p.f), tiocmbis, uintptr(unsafe.Pointer(&line)))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmbis, uintptr(unsafe.Pointer(&line))))
 }
 
 // DisableModemLines
 // Clear the indicated modem bits.
 func (p *Port) DisableModemLines(line ModemLine) error {
-	return ioctl.Ioctl(uintptr(p.f), tiocmbic, uintptr(unsafe.Pointer(&line)))
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmbic, uintptr(unsafe.Pointer(&line))))
 }
 
 func (attrs *Termios) MakeRaw() {

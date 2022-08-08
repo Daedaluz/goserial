@@ -1,4 +1,6 @@
 github.com/daedaluz/fdev v0.0.0-20220728133211-b89d5773a0d3 h1:3zq7CiTIUl+ksGs3aof8jD/o6QhAhpaDf0kskihI+g8=
 github.com/daedaluz/fdev v0.0.0-20220728133211-b89d5773a0d3/go.mod h1:4XXBAuis+/SeNRqyaS80Q38m94VK2rKyb/J4zU3Y85Q=
+github.com/daedaluz/fdev v0.0.0-20220808131950-36f0c6fd4b51 h1:/0cYchIJxyAKAj1vktiwtbF9KX1Kh7XKQ37Krm7HfFg=
+github.com/daedaluz/fdev v0.0.0-20220808131950-36f0c6fd4b51/go.mod h1:4XXBAuis+/SeNRqyaS80Q38m94VK2rKyb/J4zU3Y85Q=
 github.com/daedaluz/goioctl v0.0.0-20211206100409-83a7ad26457f h1:L76Ti4jfcYpSU6mDnWskEI4uwmcDNUAyYOuAupqrub4=
 github.com/daedaluz/goioctl v0.0.0-20211206100409-83a7ad26457f/go.mod h1:NbO2vzbi679q0yLroSQd/T4/NnTvpQgHWs7tgZCjiv8=
