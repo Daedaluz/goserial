@@ -5,6 +5,7 @@ import (
 	"github.com/daedaluz/fdev/poll"
 	ioctl "github.com/daedaluz/goioctl"
 	"strings"
+	"sync/atomic"
 	"syscall"
 	"time"
 	"unsafe"
@@ -731,7 +732,7 @@ func (o *Options) SetReadTimeout(timeout time.Duration) *Options {
 
 type Port struct {
 	options *Options
-	closed  bool
+	closed  atomic.Bool
 	f       int
 }
 
@@ -745,13 +746,12 @@ func Open(name string, opts *Options) (*Port, error) {
 	}
 	return &Port{
 		options: opts,
-		closed:  false,
 		f:       fd,
 	}, nil
 }
 
 func (p *Port) Write(data []byte) (n int, err error) {
-	if p.closed {
+	if p.closed.Load() {
 		return 0, ErrClosed
 	}
 	return syscall.Write(p.f, data)
@@ -765,7 +765,7 @@ func (p *Port) readTimeout(data []byte, timeout time.Duration) (int, error) {
 }
 
 func (p *Port) Read(data []byte) (n int, err error) {
-	if p.closed {
+	if p.closed.Load() {
 		return 0, ErrClosed
 	}
 	if p.options.ReadTimeout > -1 {
@@ -783,16 +783,19 @@ func (p *Port) SetReadTimeout(timeout time.Duration) {
 }
 
 func (p *Port) Fd() int {
-	if p.closed {
+	if p.closed.Load() {
 		return -1
 	}
 	return p.f
 }
 
 func (p *Port) Close() error {
-	p.closed = true
-	p.f = -1
-	return syscall.Close(p.f)
+	if !p.closed.Swap(true) {
+		fd := p.f
+		p.f = -1
+		return syscall.Close(fd)
+	}
+	return ErrClosed
 }
 
 func (p *Port) GetAttr() (*Termios, error) {
