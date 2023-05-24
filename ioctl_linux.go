@@ -36,4 +36,7 @@ var (
 
 	tiocgrs485 = uintptr(0x542E)
 	tiocsrs485 = uintptr(0x542F)
+
+	tiocswinsz = uintptr(0x5414)
+	tiocgwinsz = uintptr(0x5413)
 )

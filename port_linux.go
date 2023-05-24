@@ -31,6 +31,13 @@ type Termios2 struct {
 	OSpeed uint32     /* output speed */
 }
 
+type Winsize struct {
+	Row    uint16
+	Col    uint16
+	Xpixel uint16
+	Ypixel uint16
+}
+
 type SerialFlags int32
 
 const (
@@ -913,6 +920,21 @@ func (p *Port) MakeRaw() error {
 	}
 	attrs.MakeRaw()
 	return wrapErr("", p.SetAttr(TCSANOW, attrs))
+}
+
+// GetWinSize returns the window size of the terminal.
+func (p *Port) GetWinSize() (*Winsize, error) {
+	ws := &Winsize{}
+	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgwinsz, uintptr(unsafe.Pointer(ws)))
+	if err != nil {
+		return nil, wrapErr("", err)
+	}
+	return ws, nil
+}
+
+// SetWinSize sets the window size of the terminal.
+func (p *Port) SetWinSize(ws *Winsize) error {
+	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocswinsz, uintptr(unsafe.Pointer(ws))))
 }
 
 // SetModemLines
