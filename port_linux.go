@@ -768,7 +768,7 @@ func Open(name string, opts *Options) (*Port, error) {
 	}
 	fd, err := syscall.Open(name, opts.OpenMode, 0)
 	if err != nil {
-		return nil, wrapErr("", err)
+		return nil, wrapErr("Open", err)
 	}
 	res := &Port{
 		options: opts,
@@ -792,7 +792,7 @@ func NewPort(fd int, opts *Options) (*Port, error) {
 // Write data to the serial port.
 func (p *Port) Write(data []byte) (n int, err error) {
 	x, err := syscall.Write(p.f.Load().(int), data)
-	return x, wrapErr("", err)
+	return x, wrapErr("Write", err)
 }
 
 func (p *Port) readTimeout(data []byte, timeout time.Duration) (int, error) {
@@ -800,7 +800,7 @@ func (p *Port) readTimeout(data []byte, timeout time.Duration) (int, error) {
 		return 0, wrapErr("", err)
 	}
 	n, err := syscall.Read(p.f.Load().(int), data)
-	return n, wrapErr("", err)
+	return n, wrapErr("ReadTimeout", err)
 }
 
 // Read data from the serial port.
@@ -809,7 +809,7 @@ func (p *Port) Read(data []byte) (n int, err error) {
 		return p.readTimeout(data, p.options.ReadTimeout)
 	}
 	n, err = syscall.Read(p.f.Load().(int), data)
-	return n, wrapErr("", err)
+	return n, wrapErr("Read", err)
 }
 
 // ReadTimeout reads data with timeout.
@@ -830,7 +830,7 @@ func (p *Port) Fd() int {
 // Close the serial port.
 func (p *Port) Close() error {
 	if x := p.f.Swap(-1); x != -1 {
-		return wrapErr("", syscall.Close(x.(int)))
+		return wrapErr("Close", syscall.Close(x.(int)))
 	}
 	return ErrClosed
 }
@@ -840,14 +840,14 @@ func (p *Port) GetAttr() (*Termios, error) {
 	attrs := &Termios{}
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tcgets, uintptr(unsafe.Pointer(attrs)))
 	if err != nil {
-		return nil, wrapErr("", err)
+		return nil, wrapErr("GetAttr", err)
 	}
 	return attrs, nil
 }
 
 // SetAttr sets the termios serial port settings.
 func (p *Port) SetAttr(when Action, attrs *Termios) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsets+uintptr(when), uintptr(unsafe.Pointer(attrs))))
+	return wrapErr("SetAttr", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsets+uintptr(when), uintptr(unsafe.Pointer(attrs))))
 }
 
 // GetAttr2 returns the current termios2 serial port settings.
@@ -855,7 +855,7 @@ func (p *Port) GetAttr2() (*Termios2, error) {
 	attrs := &Termios2{}
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tcgets2, uintptr(unsafe.Pointer(attrs)))
 	if err != nil {
-		return nil, wrapErr("", err)
+		return nil, wrapErr("GetAttr2", err)
 	}
 	return attrs, nil
 }
@@ -863,7 +863,7 @@ func (p *Port) GetAttr2() (*Termios2, error) {
 // SetAttr2 sets the termios2 serial port settings.
 func (p *Port) SetAttr2(when Action, attrs *Termios2) error {
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsets2+uintptr(when), uintptr(unsafe.Pointer(attrs)))
-	return wrapErr("", err)
+	return wrapErr("SetAttr2", err)
 }
 
 // GetSerial returns the current serial port settings.
@@ -871,13 +871,13 @@ func (p *Port) GetSerial() (*Serial, error) {
 	serial := &Serial{}
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgserial, uintptr(unsafe.Pointer(serial)))
 	if err != nil {
-		return nil, wrapErr("", err)
+		return nil, wrapErr("GetSerial", err)
 	}
 	return serial, nil
 }
 
 func (p *Port) SetSerial(s *Serial) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsserial, uintptr(unsafe.Pointer(s))))
+	return wrapErr("SetSerial", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsserial, uintptr(unsafe.Pointer(s))))
 }
 
 // SendBreak
@@ -896,7 +896,7 @@ func (p *Port) SetSerial(s *Serial) error {
 // AIX treat arg (when nonzero) as a time interval measured
 // in milliseconds. HP-UX ignores arg.)
 func (p *Port) SendBreak(arg int) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrk, uintptr(arg)))
+	return wrapErr("SendBreak", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrk, uintptr(arg)))
 }
 
 // SendBreakPosix
@@ -904,39 +904,39 @@ func (p *Port) SendBreak(arg int) error {
 // arg as a time interval measured in deciseconds, and does
 // nothing when the driver does not support breaks.
 func (p *Port) SendBreakPosix(arg int) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrkp, uintptr(arg)))
+	return wrapErr("SendBreakPosix", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrkp, uintptr(arg)))
 }
 
 // SetBreak
 // Turn break on, that is, start sending zero bits.
 func (p *Port) SetBreak() error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsbrk, 1))
+	return wrapErr("SetBreak", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsbrk, 1))
 }
 
 // ClearBreak
 // Turn break off, that is, stop sending zero bits.
 func (p *Port) ClearBreak() error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tioccbrk, 1))
+	return wrapErr("ClearBreak", ioctl.Ioctl(uintptr(p.f.Load().(int)), tioccbrk, 1))
 }
 
 // Drain
 // waits until all output written to the Port has been transmitted.
 func (p *Port) Drain() error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrk, 1))
+	return wrapErr("Drain", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcsbrk, 1))
 }
 
 // Flush
 // discards data written to the Port but not transmitted,
 // or data received but not read, depending on the queue
 func (p *Port) Flush(queue Queue) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcflsh, uintptr(queue)))
+	return wrapErr("Flush", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcflsh, uintptr(queue)))
 }
 
 // Flow
 // suspends transmission or reception of data on the Port,
 // depending on the flow value
 func (p *Port) Flow(flow Flow) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcxonc, uintptr(flow)))
+	return wrapErr("Flow", ioctl.Ioctl(uintptr(p.f.Load().(int)), tcxonc, uintptr(flow)))
 }
 
 // GetRS485
@@ -945,7 +945,7 @@ func (p *Port) GetRS485() (*RS485, error) {
 	rs485cfg := &RS485{}
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgrs485, uintptr(unsafe.Pointer(rs485cfg)))
 	if err != nil {
-		return nil, wrapErr("", err)
+		return nil, wrapErr("GetRS485", err)
 	}
 	return rs485cfg, nil
 }
@@ -953,7 +953,7 @@ func (p *Port) GetRS485() (*RS485, error) {
 // SetRS485
 // Set rs485 parameters
 func (p *Port) SetRS485(cfg *RS485) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsrs485, uintptr(unsafe.Pointer(cfg))))
+	return wrapErr("SetRS485", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsrs485, uintptr(unsafe.Pointer(cfg))))
 }
 
 // MakeRaw
@@ -964,7 +964,7 @@ func (p *Port) MakeRaw() error {
 		return wrapErr("", err)
 	}
 	attrs.MakeRaw()
-	return wrapErr("", p.SetAttr(TCSANOW, attrs))
+	return wrapErr("MakeRaw", p.SetAttr(TCSANOW, attrs))
 }
 
 // GetWinSize returns the window size of the terminal.
@@ -972,20 +972,20 @@ func (p *Port) GetWinSize() (*Winsize, error) {
 	ws := &Winsize{}
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgwinsz, uintptr(unsafe.Pointer(ws)))
 	if err != nil {
-		return nil, wrapErr("", err)
+		return nil, wrapErr("GetWinSize", err)
 	}
 	return ws, nil
 }
 
 // SetWinSize sets the window size of the terminal.
 func (p *Port) SetWinSize(ws *Winsize) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocswinsz, uintptr(unsafe.Pointer(ws))))
+	return wrapErr("SetWinSize", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocswinsz, uintptr(unsafe.Pointer(ws))))
 }
 
 // SetModemLines
 // Set the status of modem bits.
 func (p *Port) SetModemLines(line ModemLine) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmset, uintptr(unsafe.Pointer(&line))))
+	return wrapErr("SetModemLines", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmset, uintptr(unsafe.Pointer(&line))))
 }
 
 // GetModemLines
@@ -993,19 +993,19 @@ func (p *Port) SetModemLines(line ModemLine) error {
 func (p *Port) GetModemLines() (ModemLine, error) {
 	var line ModemLine
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmget, uintptr(unsafe.Pointer(&line)))
-	return line, wrapErr("", err)
+	return line, wrapErr("GetModemLines", err)
 }
 
 // EnableModemLines
 // Set the indicated modem bits.
 func (p *Port) EnableModemLines(line ModemLine) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmbis, uintptr(unsafe.Pointer(&line))))
+	return wrapErr("EnableModemLines", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmbis, uintptr(unsafe.Pointer(&line))))
 }
 
 // DisableModemLines
 // Clear the indicated modem bits.
 func (p *Port) DisableModemLines(line ModemLine) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmbic, uintptr(unsafe.Pointer(&line))))
+	return wrapErr("DisableModemLines", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocmbic, uintptr(unsafe.Pointer(&line))))
 }
 
 // SetPacketMode Enable or disable packet mode.
@@ -1020,7 +1020,7 @@ func (p *Port) SetPacketMode(enable bool) error {
 	if enable {
 		x = 1
 	}
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocpkt, uintptr(unsafe.Pointer(&x))))
+	return wrapErr("SetPacketMode", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocpkt, uintptr(unsafe.Pointer(&x))))
 }
 
 // GetPacketMode returns true if the terminal is in packet mode.
@@ -1028,7 +1028,7 @@ func (p *Port) GetPacketMode() (bool, error) {
 	x := uint32(0)
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgpkt, uintptr(unsafe.Pointer(&x)))
 	if err != nil {
-		return false, wrapErr("", err)
+		return false, wrapErr("GetPacketMode", err)
 	}
 	return x != 0, nil
 }
@@ -1039,7 +1039,7 @@ func (p *Port) SetLockPT(lock bool) error {
 	if lock {
 		x = 1
 	}
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsptlck, uintptr(unsafe.Pointer(&x))))
+	return wrapErr("SetLockPT", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocsptlck, uintptr(unsafe.Pointer(&x))))
 }
 
 // GetLockPT returns true if the pseudo-terminal slave device is locked.
@@ -1047,18 +1047,17 @@ func (p *Port) GetLockPT() (bool, error) {
 	x := uint32(0)
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgptlck, uintptr(unsafe.Pointer(&x)))
 	if err != nil {
-		return false, wrapErr("", err)
+		return false, wrapErr("GetLockPT", err)
 	}
 	return x != 0, nil
 }
 
 // GetPTPeer Given a file descriptor referring to a pseudo-terminal master,
 // returns a new Port with the descriptor of the corresponding pseudo-terminal slave.
-func (p *Port) GetPTPeer() (*Port, error) {
-	fd := uintptr(0)
-	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgptpeer, uintptr(unsafe.Pointer(&fd)))
+func (p *Port) GetPTPeer(openFlags int) (*Port, error) {
+	fd, err := ioctl.IoctlX(uintptr(p.f.Load().(int)), tiocgptpeer, uintptr(openFlags))
 	if err != nil {
-		return nil, wrapErr("", err)
+		return nil, wrapErr("GetPTPeer", err)
 	}
 	return NewPort(int(fd), nil)
 }
@@ -1068,7 +1067,7 @@ func (p *Port) PTSNumber() (int, error) {
 	ptn := uint32(0)
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgptn, uintptr(unsafe.Pointer(&ptn)))
 	if err != nil {
-		return 0, wrapErr("", err)
+		return 0, wrapErr("PTSNumber", err)
 	}
 	return int(ptn), nil
 }
@@ -1078,14 +1077,14 @@ func (p *Port) GetGroupID() (int, error) {
 	gid := 0
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgpgrp, uintptr(unsafe.Pointer(&gid)))
 	if err != nil {
-		return 0, wrapErr("", err)
+		return 0, wrapErr("GetGroupID", err)
 	}
 	return gid, nil
 }
 
 // SetGroupID sets the group ID of the slave pseudo-terminal device.
 func (p *Port) SetGroupID(gid int) error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocspgrp, uintptr(unsafe.Pointer(&gid))))
+	return wrapErr("SetGroupID", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocspgrp, uintptr(unsafe.Pointer(&gid))))
 }
 
 // GetSessionID returns the session ID of the slave pseudo-terminal device.
@@ -1093,19 +1092,19 @@ func (p *Port) GetSessionID() (int, error) {
 	sid := 0
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgsid, uintptr(unsafe.Pointer(&sid)))
 	if err != nil {
-		return 0, wrapErr("", err)
+		return 0, wrapErr("GetSessionID", err)
 	}
 	return sid, nil
 }
 
 // EnableExclusiveMode enables exclusive mode for the slave pseudo-terminal device.
 func (p *Port) EnableExclusiveMode() error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocexcl, 0))
+	return wrapErr("EnableExclusiveMode", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocexcl, 0))
 }
 
 // DisableExclusiveMode disables exclusive mode for the slave pseudo-terminal device.
 func (p *Port) DisableExclusiveMode() error {
-	return wrapErr("", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocnxcl, 1))
+	return wrapErr("DisableExclusiveMode", ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocnxcl, 1))
 }
 
 // GetExclusiveMode returns true if exclusive mode is enabled for the slave pseudo-terminal device.
@@ -1113,7 +1112,7 @@ func (p *Port) GetExclusiveMode() (bool, error) {
 	x := 0
 	err := ioctl.Ioctl(uintptr(p.f.Load().(int)), tiocgexcl, uintptr(unsafe.Pointer(&x)))
 	if err != nil {
-		return false, wrapErr("", err)
+		return false, wrapErr("GetExclusiveMode", err)
 	}
 	return x == 1, nil
 }

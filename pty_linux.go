@@ -12,7 +12,7 @@ func OpenPTY(termp *Termios, winp *Winsize) (*Port, *Port, error) {
 		master.Close()
 		return nil, nil, err
 	}
-	slave, err := master.GetPTPeer()
+	slave, err := master.GetPTPeer(0)
 	if err != nil {
 		master.Close()
 		return nil, nil, err

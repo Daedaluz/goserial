@@ -9,7 +9,11 @@ type Error struct {
 
 func (e Error) Error() string {
 	if e.msg != "" {
-		return e.msg
+		msg := e.msg
+		if e.err != nil {
+			msg += ": " + e.err.Error()
+		}
+		return msg
 	}
 	if e.err != nil {
 		return e.err.Error()
