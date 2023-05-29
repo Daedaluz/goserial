@@ -39,4 +39,20 @@ var (
 
 	tiocswinsz = uintptr(0x5414)
 	tiocgwinsz = uintptr(0x5413)
+
+	tiocpkt  = uintptr(0x5420)
+	tiocgpkt = ioctl.IOR('T', 0x38, unsafe.Sizeof(int32(0)))
+
+	tiocgptn    = ioctl.IOR('T', 0x30, unsafe.Sizeof(uint32(0)))
+	tiocsptlck  = ioctl.IOW('T', 0x31, unsafe.Sizeof(int32(0)))
+	tiocgptlck  = ioctl.IOR('T', 0x39, unsafe.Sizeof(int32(0)))
+	tiocgptpeer = ioctl.IO('T', 0x41)
+
+	tiocgpgrp = uintptr(0x540F)
+	tiocspgrp = uintptr(0x5410)
+	tiocgsid  = uintptr(0x5429)
+
+	tiocexcl  = uintptr(0x540C)
+	tiocnxcl  = uintptr(0x540D)
+	tiocgexcl = uintptr(0x540E)
 )
