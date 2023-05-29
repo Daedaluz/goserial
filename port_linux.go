@@ -1,6 +1,5 @@
 package serial
 
-import "C"
 import (
 	"fmt"
 	"github.com/daedaluz/fdev/poll"
